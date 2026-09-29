@@ -1,14 +1,14 @@
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class AdministradorTeste {
+public class AdministradorTest {
 
     private Administrador admin;
     private Usuario usuarioDoador;
     private Instituicao ongValida;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         admin = new Administrador();
         usuarioDoador = new Usuario("Supermercado Teste", "98.765.432/0001-10", "contato@teste.com", "Doador");
