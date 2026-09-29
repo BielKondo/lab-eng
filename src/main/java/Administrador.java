@@ -60,4 +60,5 @@ public class Administrador {
     public List<Usuario> getUsuarios() {
         return usuarios;
     }
+
 }
