@@ -41,3 +41,16 @@ A Ilusão da Coleta Imediata: Estamos assumindo que a ONG tem um carro abastecid
 O Risco do "No-Show": O que acontece quando a ONG reserva e não aparece? O Doador fica frustrado e nunca mais usa o app. Seu sistema precisa de alertas escalonados. Se a ONG não validar o início da viagem em X minutos, a reserva deve cair automaticamente.
 
 O Problema do Banco de Dados Travado: Se você usar as transações padrão do banco de dados relacional para lidar com a concorrência na hora da reserva, um pico de acessos pode gerar deadlocks ou derrubar o banco. Você precisará pensar se usará filas em memória, estratégias de banco adequadas, ou se essa validação ocorrerá antes de bater no disco.
+
+## Backend (Spring Boot)
+
+Requisitos: JDK 17+ e Maven 3.9+ (o IntelliJ já traz um Maven embutido).
+
+    mvn spring-boot:run   # sobe a API em http://localhost:8080 com H2 em memória
+    mvn clean verify      # compila e roda os testes (mesmo comando do Jenkins)
+
+Pacotes em `src/main/java/br/mackenzie/resgatai`, um por módulo da arquitetura:
+
+- `usuario` — `Usuario`, `Estabelecimento` (Doador), `Instituicao` (Receptor), `Administrador` e `UsuarioService` (UC01, RF06)
+- `estoque` — `LoteAlimento`, a máquina de estados `StatusLote` e `LoteAlimentoService` (UC02)
+- `reserva` — `Reserva` (UC04, UC05, UC06)
