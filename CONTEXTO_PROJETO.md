@@ -160,7 +160,14 @@ Estabelecimentos comerciais de alimentos (mercados, padarias, hortifrútis) desc
 - **Exceções:** 6a lote já reservado por outro (rollback, libera lock, informa e sugere outros lotes); 6b lote vencido/fora da janela (rollback, status → `EXPIRADO`, retira das listagens, notifica Doador).
 - **Regra crítica:** vence a **primeira requisição bem-sucedida**; as demais recebem aviso de indisponibilidade.
 
-### 8.6 UC06 — Validar Retirada de Alimentos
+### 8.6 UC03 — Notificar Alimentos Próximos (especificado em `docs/UC03-Notificar-Alimentos-Proximos.md`)
+
+- **Atores:** Motor de Roteamento (principal); Sistema de Notificação e Receptor (secundários). Incluído por UC02 (passo 11).
+- **Fluxo principal:** calcula o tempo restante → define o raio (≤ 2 h: 5 km; ≤ 6 h: 10 km; ≤ 12 h: 20 km; > 12 h: 30 km) → seleciona instituições ativas, aprovadas, com localização, dentro do raio (e do raio de atuação próprio) → ordena por distância (desempate: score) → envia e registra cada notificação → devolve o resumo ao UC02.
+- **Alternativos:** 3a lote sem coordenadas (não notifica; lote segue nas buscas); 4a nenhum elegível (dobra o raio uma vez, teto 50 km).
+- **Exceções:** 2a lote não está mais `DISPONIVEL`; 6a falha de envio a um receptor (registra `FALHA` e continua).
+
+### 8.7 UC06 — Validar Retirada de Alimentos
 
 - **Pré-condição:** Doador autenticado; lote `RESERVADO_PENDENTE`, dentro do prazo, com código vigente; Receptor presente com o código.
 - **Pós-condição:** lote `COLETADO`; data, hora e responsável registrados; **código invalidado** (sem reuso); reputação de Doador e Receptor atualizada; quantidade somada aos **indicadores de impacto**; Receptor notificado.
@@ -276,7 +283,7 @@ Participantes: Administrador, Doador (Mercado), Receptor (ONG) → `:Interface` 
 > Pontos que a documentação atual **não resolve** ou onde há divergência entre artefatos. Ao trabalhar nesses temas, **sinalize e peça decisão** em vez de presumir.
 
 1. **Doação × venda:** o texto fala em "doação", mas RF04 e a tela de pagamento tratam de **compra a preço reduzido** (marketplace B2B). A integração com meios de pagamento também aparece como evolução futura (Manutenibilidade). *Definir se o pagamento está no escopo da primeira entrega.*
-2. **UC03 e UC05** estão listados nos casos de uso e referenciados (include/timeout), mas **não têm especificação detalhada** (fluxos).
+2. **UC05** está listado e referenciado (timeout), mas **não tem especificação detalhada**. *(UC03 foi especificado em `docs/UC03-Notificar-Alimentos-Proximos.md` e está implementado.)*
 3. **Numeração:** os casos de uso saltam de UC04 para UC06 nos diagramas; o texto alterna "UC" e "CU" (ex.: "CU03", "CU06").
 4. **UC01 — referência quebrada:** a exceção 6b remete ao "fluxo alternativo 5a", que não existe (os alternativos são 3a, 3b, 3c).
 5. **Pessoa física:** o wireframe oferece o perfil "Pessoa física", mas **não há requisito, ator ou classe** para esse perfil.
@@ -285,8 +292,8 @@ Participantes: Administrador, Doador (Mercado), Receptor (ONG) → `:Interface` 
 8. **Log de auditoria e tabelas de segurança/permissões:** citados em UC01, mas não modelados no diagrama de classes.
 9. **Perfil de acesso do Administrador:** UC01 prevê criar Administrador, mas o RF01 só menciona Estabelecimentos e Instituições.
 10. **Classe `Reserva` × `Pagamento` × `LoteAlimento`:** o status do lote (`DISPONIVEL`, etc.) **não aparece como atributo** em `LoteAlimento` (há só o método `alterarStatus()`); `Reserva.status` também não tem domínio de valores definido. Campos de UC02 (unidade de medida, tipo/categoria, condições de conservação, janela de retirada, observações, endereço alternativo) **não estão** na classe `LoteAlimento`.
-11. **RF03 × UC04:** filtros por preço/geolocalização estão em RF03; o raio de alcance e a regra de "elegibilidade" do UC03 (relação validade restante × distância) **não têm fórmula definida**.
-12. **Valor do timeout de reserva:** não há prazo numérico; UC04 diz que o prazo limite deriva da **janela de retirada informada pelo Doador**.
+11. **RF03 × UC04:** filtros por preço/geolocalização estão em RF03. *Regra adotada no código para o UC03 (`MotorRoteamento`): validade restante ≤ 2 h → 5 km; ≤ 6 h → 10 km; ≤ 12 h → 20 km; > 12 h → 30 km; sem elegíveis, dobra uma vez até 50 km. Distância por Haversine sobre coordenadas cadastradas (sem geocodificação automática).*
+12. **Valor do timeout de reserva:** não há prazo numérico; UC04 diz que o prazo limite deriva da **janela de retirada informada pelo Doador**. *Adotado no código: prazo limite = fim da janela de retirada do lote.*
 13. **Divergência de quantidade (UC06-4a):** o passo registra "quantidade entregue", mas o fluxo não detalha como o Doador informa esse valor.
 14. **Tecnologias de implementação** (linguagem, framework, banco de dados, serviço de push, mapa/geocodificação, gateway de pagamento) **ainda não foram definidas**; apenas AWS, CI/CD e HTTPS estão decididos.
 
