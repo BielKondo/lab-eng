@@ -15,6 +15,9 @@ public class Instituicao extends Usuario {
     @Enumerated(EnumType.STRING)
     private StatusAnalise statusAnalise = StatusAnalise.EM_ANALISE;
 
+    /** Até que distância (km) a instituição consegue buscar lotes (UC04-2a). Nulo = sem limite próprio. */
+    private Double raioAtuacaoKm;
+
     protected Instituicao() {}
 
     public Instituicao(String documento, String nome, String email) {
@@ -22,5 +25,11 @@ public class Instituicao extends Usuario {
     }
 
     public StatusAnalise getStatusAnalise() { return statusAnalise; }
-    void aprovar() { this.statusAnalise = StatusAnalise.APROVADA; }
+    public boolean isAprovada() { return statusAnalise == StatusAnalise.APROVADA; }
+    public void aprovar() { this.statusAnalise = StatusAnalise.APROVADA; }
+    public Double getRaioAtuacaoKm() { return raioAtuacaoKm; }
+    public void setRaioAtuacaoKm(Double raioAtuacaoKm) { this.raioAtuacaoKm = raioAtuacaoKm; }
+
+    @Override
+    public Perfil getPerfil() { return Perfil.RECEPTOR; }
 }
