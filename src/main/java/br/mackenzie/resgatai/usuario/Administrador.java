@@ -12,4 +12,7 @@ public class Administrador extends Usuario {
     public Administrador(String documento, String nome, String email) {
         super(documento, nome, email);
     }
+
+    @Override
+    public Perfil getPerfil() { return Perfil.ADMINISTRADOR; }
 }

@@ -13,4 +13,7 @@ public class Estabelecimento extends Usuario {
     public Estabelecimento(String documento, String nome, String email) {
         super(documento, nome, email);
     }
+
+    @Override
+    public Perfil getPerfil() { return Perfil.DOADOR; }
 }
