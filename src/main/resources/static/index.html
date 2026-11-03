@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResgatAI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca">ResgatAI</div>
+  <div id="usuario-atual" class="usuario-atual oculto">
+    <span id="usuario-nome"></span>
+    <button id="btn-sair" class="link">Sair</button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- 01 — Boas-vindas / Entrar -->
+  <section id="tela-entrar" class="tela">
+    <h1>Bem-vindo ao ResgatAI</h1>
+    <p class="sub">Conecta estabelecimentos com alimentos perto do vencimento a instituições sociais.</p>
+    <form id="form-entrar" class="cartao">
+      <label>Qual é o seu perfil?</label>
+      <div class="perfis">
+        <label class="perfil"><input type="radio" name="perfil" value="DOADOR" checked> Estabelecimento</label>
+        <label class="perfil"><input type="radio" name="perfil" value="RECEPTOR"> Instituição</label>
+        <label class="perfil"><input type="radio" name="perfil" value="ADMINISTRADOR"> Administrador</label>
+      </div>
+      <label for="documento">CNPJ / CPF</label>
+      <input id="documento" name="documento" placeholder="00.000.000/0000-00" required>
+      <button type="submit" class="primario">Entrar</button>
+      <p class="dica">Dados de demonstração: doador <code>98.765.432/0001-98</code> ·
+        instituição aprovada <code>11.222.333/0001-81</code> · em análise <code>33.444.555/0001-81</code> ·
+        administrador <code>529.982.247-25</code>. A autenticação por senha ainda não está implementada.</p>
+      <p id="erro-entrar" class="erro"></p>
+    </form>
+  </section>
+
+  <!-- RECEPTOR: 02 — Feed / Ofertas perto -->
+  <section id="tela-ofertas" class="tela oculto">
+    <nav class="abas">
+      <button data-tela="tela-ofertas" class="ativa">Ofertas perto</button>
+      <button data-tela="tela-notificacoes">Notificações <span id="badge-notif" class="badge oculto"></span></button>
+      <button data-tela="tela-reservas">Minhas reservas</button>
+    </nav>
+    <form id="form-busca" class="filtros">
+      <input name="categoria" placeholder="Categoria">
+      <input name="precoMaximo" type="number" step="0.01" min="0" placeholder="Preço máx. (R$)">
+      <input name="raioKm" type="number" step="0.5" min="0" placeholder="Raio (km)">
+      <input name="validadeAte" type="datetime-local" title="Vence até">
+      <button type="submit">Buscar</button>
+    </form>
+    <p id="aviso-aprovacao" class="aviso oculto">Sua conta está em análise. Você pode ver as ofertas, mas só poderá reservar depois da aprovação do administrador.</p>
+    <div id="lista-ofertas" class="lista"></div>
+  </section>
+
+  <!-- RECEPTOR: 01 — Oferta -->
+  <section id="tela-oferta" class="tela oculto">
+    <button class="link" data-voltar="tela-ofertas">← Voltar à listagem</button>
+    <div id="detalhe-oferta" class="cartao"></div>
+    <button id="btn-reservar" class="primario">Reservar</button>
+    <p id="erro-oferta" class="erro"></p>
+    <div id="alternativas" class="oculto">
+      <h3>Outras ofertas disponíveis para você</h3>
+      <div id="lista-alternativas" class="lista"></div>
+    </div>
+  </section>
+
+  <!-- RECEPTOR: 03 — Retirada / Reserva confirmada -->
+  <section id="tela-confirmacao" class="tela oculto">
+    <h2>Reserva confirmada</h2>
+    <div class="cartao centro">
+      <div id="qr"></div>
+      <p class="sub">ou informe o PIN</p>
+      <div id="pin" class="pin"></div>
+      <p id="prazo-retirada"></p>
+      <p id="endereco-retirada"></p>
+    </div>
+    <button class="primario" data-tela="tela-reservas">Minhas reservas</button>
+  </section>
+
+  <section id="tela-reservas" class="tela oculto">
+    <nav class="abas">
+      <button data-tela="tela-ofertas">Ofertas perto</button>
+      <button data-tela="tela-notificacoes">Notificações</button>
+      <button data-tela="tela-reservas" class="ativa">Minhas reservas</button>
+    </nav>
+    <div id="lista-reservas" class="lista"></div>
+  </section>
+
+  <!-- Notificações (receptor e doador) -->
+  <section id="tela-notificacoes" class="tela oculto">
+    <nav class="abas" id="abas-notificacoes"></nav>
+    <div id="lista-notificacoes" class="lista"></div>
+  </section>
+
+  <!-- DOADOR: cadastrar lote (UC02) -->
+  <section id="tela-cadastrar-lote" class="tela oculto">
+    <nav class="abas">
+      <button data-tela="tela-cadastrar-lote" class="ativa">Cadastrar lote</button>
+      <button data-tela="tela-meus-lotes">Meus lotes</button>
+      <button data-tela="tela-notificacoes">Notificações</button>
+    </nav>
+    <form id="form-lote" class="cartao">
+      <div class="linha">
+        <label>Repetir lote anterior
+          <select name="repetir"><option value="">— novo lote —</option></select>
+        </label>
+      </div>
+      <div class="linha">
+        <label>Tipo de alimento *<input name="nome" required></label>
+        <label>Categoria<input name="categoria" list="categorias"></label>
+        <datalist id="categorias"><option>Padaria</option><option>Hortifruti</option><option>Laticínios</option><option>Confeitaria</option><option>Mercearia</option></datalist>
+      </div>
+      <div class="linha">
+        <label>Quantidade *<input name="quantidade" type="number" min="1" required></label>
+        <label>Unidade de medida *<input name="unidadeMedida" placeholder="un, kg, L, cx" required></label>
+        <label>Preço reduzido (R$)<input name="precoReduzido" type="number" step="0.01" min="0" placeholder="vazio = doação"></label>
+      </div>
+      <div class="linha">
+        <label>Data de validade *<input name="dataValidade" type="datetime-local" required></label>
+        <div class="urgencia" id="urgencia">Informe a validade para ver a urgência</div>
+      </div>
+      <div class="linha">
+        <label>Retirada de *<input name="inicioRetirada" type="datetime-local" required></label>
+        <label>Retirada até *<input name="fimRetirada" type="datetime-local" required></label>
+      </div>
+      <label>Condições de conservação e embalagem<textarea name="condicoesConservacao" rows="2"></textarea></label>
+      <label>Foto (URL)<input name="foto" type="url"></label>
+      <label class="check"><input type="checkbox" id="chk-endereco"> Retirada em endereço diferente do cadastro</label>
+      <div id="bloco-endereco" class="oculto">
+        <label>Endereço de retirada<input name="enderecoRetirada"></label>
+        <div class="linha">
+          <label>Latitude<input name="latitude" type="number" step="any"></label>
+          <label>Longitude<input name="longitude" type="number" step="any"></label>
+        </div>
+      </div>
+      <button type="submit" class="primario">Publicar lote</button>
+      <p id="erro-lote" class="erro"></p>
+    </form>
+    <div id="resumo-lote" class="cartao oculto"></div>
+  </section>
+
+  <section id="tela-meus-lotes" class="tela oculto">
+    <nav class="abas">
+      <button data-tela="tela-cadastrar-lote">Cadastrar lote</button>
+      <button data-tela="tela-meus-lotes" class="ativa">Meus lotes</button>
+      <button data-tela="tela-notificacoes">Notificações</button>
+    </nav>
+    <div id="lista-meus-lotes" class="lista"></div>
+  </section>
+
+  <!-- ADMIN: usuários (UC01) -->
+  <section id="tela-usuarios" class="tela oculto">
+    <h2>Gestão de usuários</h2>
+    <form id="form-usuario" class="cartao">
+      <div class="linha">
+        <label>Perfil *
+          <select name="perfil"><option value="DOADOR">Doador</option><option value="RECEPTOR">Receptor</option><option value="ADMINISTRADOR">Administrador</option></select>
+        </label>
+        <label>CNPJ/CPF *<input name="documento" required></label>
+        <label>Nome *<input name="nome" required></label>
+      </div>
+      <div class="linha">
+        <label>E-mail *<input name="email" type="email" required></label>
+        <label>Telefone<input name="telefone"></label>
+      </div>
+      <label>Endereço<input name="endereco"></label>
+      <div class="linha">
+        <label>Latitude<input name="latitude" type="number" step="any"></label>
+        <label>Longitude<input name="longitude" type="number" step="any"></label>
+      </div>
+      <button type="submit" class="primario">Cadastrar usuário</button>
+      <p id="erro-usuario" class="erro"></p>
+    </form>
+    <div id="lista-usuarios" class="lista"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast oculto"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
